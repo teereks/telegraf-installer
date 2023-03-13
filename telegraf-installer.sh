@@ -4,8 +4,8 @@
 # Script Name    : Telegraf Installer
 # Description    : Download and install Telegraf natively on Debian/Ubuntu
 # Creation Date  : 2023/20/13
-# Author         :
-# Email          :
+# Author         : teereks
+# Email          : 47917519+teereks@users.noreply.github.com
 ##########################################################################
 
 # Verify that script is run as root
@@ -37,7 +37,7 @@ echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https
 sudo apt update && sudo apt install telegraf -y
 
 if [ ! telegraf --version ]; then
-    echo ERROR: Telegraf was not installed successfully
+    echo ERROR: Telegraf was not installed successfully. Exiting
     exit 1
 else
     echo Successfully installed:
