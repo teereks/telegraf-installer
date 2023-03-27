@@ -9,13 +9,32 @@
 ##########################################################################
 
 # Verify that script is run as root
-if [[ $EUID -ne 0 ]]; then
-    echo "This script needs to be run as root"
-    exit 1
-fi
+function verify_root() {
+    if [[ $EUID -ne 0 ]]; then
+        echo "This script needs to be run as root!"
+        exit 1
+    fi
+}
+
+# Check that commands are available on this system. Accepts array of commands as an argument.
+function check_command_availability() {
+    cmds=("$@")
+    for cmd in "${cmds[@]}"; do
+        if ! command -v $cmd &>/dev/null; then
+            echo "Could not find command: $cmd"
+        fi
+    done
+}
+
+# Install given packages. Accepts package-names in an array as argument.
+function install_packages() {
+    pkgs=("$@")
+    apt-get update
+    apt-get -y --ignore-missing install "${pkgs[@]}"
+}
 
 # Remove InfluxData related GPG-keys and listed sources from system
-remove_influxdata_upstream() {
+function remove_influxdata_upstream() {
     # Array of files to be deleted
     files=("/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg" "/etc/apt/sources.list.d/influxdata.list")
 
@@ -28,7 +47,7 @@ remove_influxdata_upstream() {
 }
 
 # Add InfluxData related GPG-keys and listed sources to system
-add_influxdata_upstream() {
+function add_influxdata_upstream() {
     # Create temporary directory to work in
     mkdir /tmp/telegraf-installer && cd "$_"
 
@@ -50,13 +69,5 @@ add_influxdata_upstream() {
 }
 
 # Update sources and install Telegraf
-sudo apt update && sudo apt install telegraf -y
+sudo apt-get update && sudo apt-get install telegraf -y
 
-# Verify installation
-if [ ! telegraf --version ]; then
-    echo ERROR: Telegraf was not installed successfully. Exiting...
-    exit 1
-else
-    echo Successfully installed:
-    telegraf --version
-fi
