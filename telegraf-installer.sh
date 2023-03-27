@@ -9,8 +9,8 @@
 ##########################################################################
 
 # Variable declaration
-prerequisite_pkgs=("whiptail")
-temp_directory="/tmp/telegraf-installer"
+prerequisite_pkgs=("whiptail" "wget")
+#temp_directory="/tmp/telegraf-installer"
 
 # Verify that script is run as root
 function verify_root() {
@@ -75,21 +75,82 @@ function add_influxdata_upstream() {
 
     # Trust the key
     echo '393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c influxdata-archive_compat.key' | sha256sum -c && cat influxdata-archive_compat.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg >/dev/null
-
     # Add Influxdata-repo as a package source
     echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
 }
 
+function packages() {
+    title="Packages"
+    text="Use Arrow-, Space- and Tab-keys to control the menu.\nSelect programs which you want to install.\nPrograms marked with '*' are already found on the system, unselecting them will not uninstall them."
+    local -A checkboxes
+    checkboxes["wget"]="wget"
+    checkboxes["curl"]="curl"
+    checkboxes["tmux"]="tmux"
+    checkboxes["telegraf"]="telegraf"
+
+    programchoices && selectedprograms && exitorinstall
+}
+
+function programchoices() {
+    choices=()
+    for key in "${!checkboxes[@]}"; do
+        spacer=$(for i in $(seq 1 54); do echo -n " "; done)
+        if ! [ -x "$(command -v ${checkboxes[$key]})" ]; then
+            choices+=("${key}" "${spacer}" "OFF")
+        else
+            choices+=("${key}" "${spacer}" "ON")
+        fi
+    done
+}
+
+function selectedprograms() {
+    result=$(whiptail --title "$title" --checklist "$text" 18 78 12 "${choices[@]}" 3>&2 2>&1 1>&3-)
+}
+
+function exitorinstall() {
+    exitstatus=$?
+    if [ $exitstatus = 0 ]; then
+        programs=$(echo $result | sed 's/" /\n/g' | sed 's/"//g' )
+        echo $programs
+        apt-get -y --ignore-missing install $programs || echo "Failed to install required packages."
+    else
+        echo "User selected Cancel."
+    fi
+}
+
+
 verify_root
 
+echo "Checking prerequisites..."
 check_command_availability "${prerequisite_pkgs[@]}"
 if [ $? -ne 0 ]; then
     echo "Could not find the required commands on the system, trying to install missing packages."
     install_packages "${prerequisite_pkgs[@]}"
     check_command_availability "${prerequisite_pkgs[@]}"
     if [ $? -ne 0 ]; then echo "ERROR: Failed to install prerequisites." >&2 && exit 1; fi
+    echo "Prerequisites installed succesfully!"
+else
+    echo "All prerequisites found!"
 fi
 
+whiptail --title "Telegraf-Installer" --msgbox "Welcome to Telegraf-Installer. Select OK to continue." 10 78
+
+if (whiptail --title "Telegraf-Installer" --yesno "This script is mainly used to install Telegraf and other related packages on this machine. Installing packages using this script requires working Internet-connection, so make sure to verify this before advancing the installer.\n\nDo you want to continue?" 12 78 --no-button "Exit" --yes-button "Continue"); then
+    echo "User selected Continue, exit status was $?."
+else
+    echo "User selected Exit, exit status was $?."
+    exit 0
+fi
+
+packages
+
+TITEMPDIR=$(whiptail --inputbox "Select temporary file-path to store InfluxData GPG-key:" 10 78 /tmp/telegraf-installer --title "Temporary file-path" 3>&1 1>&2 2>&3)
+exitstatus=$?
+if [ $exitstatus = 0 ]; then
+    echo "User selected Ok and entered " $TITEMPDIR
+else
+    echo "User selected Cancel."
+fi
 
 # add_influxdata_upstream
 # if [ $? -ne 0 ]; then
