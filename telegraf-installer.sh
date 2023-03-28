@@ -147,27 +147,59 @@ function telegrafwarning() {
     fi
 }
 
+# Hold/Unhold updates for program
+function definehold() {
+    local holdresult="N/A"
+    while [ 1 ]; do
+        HOLDCHOICE=$(
+            whiptail --title "Hold/Unhold - $1" --menu "Select 'Finish' to return to previous menu." 14 78 6 \
+                "1)" "Hold $1" \
+                "2)" "Unhold $1" \
+                "3)" "<-- Return" 3>&2 2>&1 1>&3
+        )
+        echo "choise is: $HOLDCHOICE"
+        case $HOLDCHOICE in
+        "1)")
+            holdresult=$(apt-mark hold $1)
+            whiptail --title "Hold/Unhold - $1" --msgbox "$holdresult" 8 78
+            ;;
+        "2)")
+            holdresult=$(apt-mark unhold $1)
+            whiptail --title "Hold/Unhold - $1" --msgbox "$holdresult" 8 78
+            ;;
+        "3)")
+            return
+            ;;
+        esac
+    done
+}
+
 # Present Telegraf-related operations
 function telegrafmenu() {
     while [ 1 ]; do
         CHOICE=$(
             whiptail --title "Telegraf Operations" --menu "Select 'Finish' to continue installing previously selected programs." 14 78 6 \
                 "1)" "Check Telegraf information" \
-                "2)" "Add InfluxData repository as source" \
-                "3)" "Remove InfluxData repository from sources" \
-                "4)" "Finish" 3>&2 2>&1 1>&3
+                "2)" "Hold/Unhold updates" \
+                "3)" "Add InfluxData repository as source" \
+                "4)" "Remove InfluxData repository from sources" \
+                "5)" "Finish" 3>&2 2>&1 1>&3
         )
+        echo "choise is: $CHOISE"
         case $CHOICE in
         "1)")
             telegrafinfo
             ;;
         "2)")
-            add_influxdata_upstream
+            definehold "telegraf"
             ;;
         "3)")
-            remove_influxdata_upstream
+            add_influxdata_upstream
             ;;
         "4)")
+            remove_influxdata_upstream
+            ;;
+        "5)")
             return
             ;;
         esac
@@ -179,11 +211,20 @@ function telegrafinfo() {
     local telegrafversion="N/A"
     local sourcepath="N/A"
     local keypath="N/A"
+    local holdstatus="N/A"
 
     check_command_availability "telegraf"
     if [[ $? -eq 0 ]]; then
         telegrafversion="$(telegraf --version)"
     fi
+
+    holdstatus=$(apt-mark showhold telegraf)
+    if [[ -z "$holdstatus" ]]; then
+        holdstatus="telegraf NOT ON HOLD"
+    else
+        holdstatus="telegraf SET ON HOLD"
+    fi
+
 
     if [[ -f "/etc/apt/sources.list.d/influxdata.list" ]]; then
         sourcepath="Found: /etc/apt/sources.list.d/influxdata.list"
@@ -193,7 +234,7 @@ function telegrafinfo() {
         keypath="Found: /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg"
     fi
 
-    whiptail --title "Telegraf Information" --msgbox "Current Telegraf version:\n-->$telegrafversion \n\nInfluxData-repository as source:\n-->$sourcepath \n\nInfluxData GPG-key:\n-->$keypath" 16 78
+    whiptail --title "Telegraf Information" --msgbox "Current Telegraf version:\n-->$telegrafversion \n\nTelegraf - apt-mark status:\n-->$holdstatus\n\nInfluxData-repository as source:\n-->$sourcepath \n\nInfluxData GPG-key:\n-->$keypath" 18 78
 }
 
 # Present programs to install
