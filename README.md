@@ -1,10 +1,20 @@
 
 # Telegraf-Installer
 
-Install `Telegraf` natively on Debian using this simple and effective Bash-script. Some parts are borrowed directly from the `Install Telegraf` -section offered by `InfluxData` so make sure to follow or atleast check the official documentation before running this script.
+This script enables user to install `Telegraf` on Debian system using simple and effective text-based user interface (TUI). 
 
-You can find the official documentation for `Telegraf 1.26.0` here: [InfluxData Documentation: Install Telegraf v.1.26](https://docs.influxdata.com/telegraf/v1.26/install/)
+> **Note:**
+> Parts of this script are borrowed directly from the `Install Telegraf` -section offered by the official Telegraf Documentation so make sure to follow or atleast check the official documentation before running this script, since there is no guarantee that this script will be updated regularly.
+>
+> Find the official documentation for `Telegraf v1.26.0` here: [Telegraf 1.26 documentation](https://docs.influxdata.com/telegraf/v1.26/)
 
+## Limitations & Requirements
+
+- Script currently only supports native installation. If you want to run Telegraf using i.e. Docker container please refer to the following instuctions: https://hub.docker.com/_/telegraf and follow the steps instructed there.
+- This script was originally developed for `Telegraf v1.26.0`, so if the latest release version is newer this script might not funtion as expected. 
+- This script uses statically coded checksums so i.e. if `InfluxData` rotates public GPG-keys for their repositories, you need to make sure that the updated checksum is available in this script.
+- Script offers dialog to user using `whiptail` so your system needs to have it installed. If `whiptail` is not already installed the script will offer you to install it automatically.
+- Downloading and updating packages from public sources requires working Internet-connection so this script has limited functionality when run on offline-systems.
 
 ## Usage
 
@@ -25,21 +35,23 @@ You can find the official documentation for `Telegraf 1.26.0` here: [InfluxData 
     curl -OJ https://raw.githubusercontent.com/teereks/telegraf-installer/main/telegraf-installer.sh
     ``` 
 
-2. Make the downloaded script executable.
+2. (optional) - If you used `git clone` to download script in the previous step, you can set your active path to downloaded repository with command:
 
     ```bash
-    chmod +x telegraf-installed.sh
+    cd telegraf-installer/
     ```
 
-3. Run the script to start the installer.
+3. Make the downloaded script executable.
+
+    ```bash
+    chmod +x telegraf-installer.sh
+    ```
+
+4. Run the script to start the installer.
 
     ```bash
     ./telegraf-installer.sh
     ```
 
 
-## Requirements & Limitations
 
-- This script has been developed for `Telegraf 1.26.0`, so if the latest release version is newer this script might not work. If the installation mechanism doesn't change in future versions this shouldn't be problem.
-- This script uses statically coded checksums so i.e. if `InfluxData` rotates public PGP-keys for their repositories, you need to make sure that the updated checksum is available in this script.
-- Script offers dialog-options to user using `whiptail` so your machine needs to have it installed. If `whiptail` is not already installed the script will offer you to install it automatically.
