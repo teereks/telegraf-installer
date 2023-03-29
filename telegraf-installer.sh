@@ -153,22 +153,26 @@ function definehold() {
     while [ 1 ]; do
         HOLDCHOICE=$(
             whiptail --title "Hold/Unhold - $1" --menu "Select 'Finish' to return to previous menu." 14 78 6 \
-                "1)" "Hold $1" \
-                "2)" "Unhold $1" \
-                "3)" "<-- Return" 3>&2 2>&1 1>&3
+                "1)" "<-- Return to previous menu" \
+                "2)" "Hold $1" \
+                "3)" "Unhold $1" 3>&2 2>&1 1>&3
         )
+        exitstatus=$?
+        [[ $exitstatus = 1 ]] && return
+
         echo "choise is: $HOLDCHOICE"
         case $HOLDCHOICE in
         "1)")
-            holdresult=$(apt-mark hold $1)
-            whiptail --title "Hold/Unhold - $1" --msgbox "$holdresult" 8 78
+            return
             ;;
         "2)")
-            holdresult=$(apt-mark unhold $1)
+            holdresult=$(apt-mark hold $1)
             whiptail --title "Hold/Unhold - $1" --msgbox "$holdresult" 8 78
+
             ;;
         "3)")
-            return
+            holdresult=$(apt-mark unhold $1)
+            whiptail --title "Hold/Unhold - $1" --msgbox "$holdresult" 8 78
             ;;
         esac
     done
@@ -185,6 +189,9 @@ function telegrafmenu() {
                 "4)" "Remove InfluxData repository from sources" \
                 "5)" "Finish" 3>&2 2>&1 1>&3
         )
+        exitstatus=$?
+        [[ $exitstatus = 1 ]] && exit 1
+
         echo "choise is: $CHOISE"
         case $CHOICE in
         "1)")
@@ -225,7 +232,6 @@ function telegrafinfo() {
         holdstatus="telegraf SET ON HOLD"
     fi
 
-
     if [[ -f "/etc/apt/sources.list.d/influxdata.list" ]]; then
         sourcepath="Found: /etc/apt/sources.list.d/influxdata.list"
     fi
@@ -240,7 +246,7 @@ function telegrafinfo() {
 # Present programs to install
 function packages() {
     title="Packages"
-    text="Use Arrow-, Space- and Tab-keys to control the menu.\nSelect the programs which you want to install.\nPrograms marked with '*' are already found on the system, unselecting them will not uninstall them.\nIf already installed programs are selected they will be updated to latest available version."
+    text="Use Arrow-, Space- and Tab-keys to control the menu.\nSelect the programs which you want to install.\nPrograms marked with '*' are already found on the system, unselecting them in this menu will not uninstall them.\nIf selected programs are already installed, they will be updated to latest available version instead."
     local -A checkboxes
     checkboxes["wget"]="wget"
     checkboxes["curl"]="curl"
@@ -274,3 +280,7 @@ else
 fi
 
 packages
+exitstatus=$?
+[[ $exitstatus = 1 ]] && whiptail --title "Exit" --msgbox "You have exited the installer. Click OK to close this window." 8 78 && exit 1
+
+whiptail --title "Finished" --msgbox "Installer has finished. Click OK exit." 8 78
