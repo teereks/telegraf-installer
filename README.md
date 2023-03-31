@@ -1,7 +1,7 @@
 
 # Telegraf-Installer
 
-This script enables user to install `Telegraf` on Debian system using simple and effective text-based user interface (TUI). 
+This script enables user to install `Telegraf` on Debian and Ubuntu using simple and effective text-based user interface (TUI) using `whiptail`.
 
 > **Note:**
 > Parts of this script are borrowed directly from the `Install Telegraf` -section offered by the official Telegraf Documentation so make sure to follow or atleast check the official documentation before running this script, since there is no guarantee that this script will be updated regularly.
@@ -13,7 +13,7 @@ This script enables user to install `Telegraf` on Debian system using simple and
 - Script currently only supports native installation. If you want to run Telegraf using i.e. Docker container please refer to the following instuctions: https://hub.docker.com/_/telegraf and follow the steps instructed there.
 - This script was originally developed for `Telegraf v1.26.0`, so if the latest release version is newer this script might not funtion as expected. 
 - This script uses statically coded checksums so i.e. if `InfluxData` rotates public GPG-keys for their repositories, you need to make sure that the updated checksum is available in this script.
-- Script offers dialog to user using `whiptail` so your system needs to have it installed. If `whiptail` is not already installed the script will offer you to install it automatically.
+- Script offers dialog to user using `whiptail` so your system needs to have it installed. If `whiptail` is not found on the system, script will make an attempt to install it using `apt-get`.
 - Downloading and updating packages from public sources requires working Internet-connection so this script has limited functionality when run on offline-systems.
 
 ## Usage
