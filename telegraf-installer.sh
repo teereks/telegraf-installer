@@ -47,7 +47,7 @@ function remove_influxdata_upstream() {
     # Array of files to be deleted
     local files=("$INFLUXDATA_KEYPATH" "$INFLUXDATA_SRCPATH")
 
-    if (whiptail --title "Warning" --yesno "Removing current InfluxData-repository source and GPG-key will disable Telegraf-updates from upstream.\nOther InfluxData-products might be affected as well, if they use the same sources. The following files will be deleted:\n--> $INFLUXDATA_SRCPATH\n--> $INFLUXDATA_KEYPATH\n\nDo you want to remove these files?" 16 78 --no-button "Return"); then
+    if (whiptail --title "Warning" --yesno "Removing current InfluxData-repository source and GPG-key will disable Telegraf-updates from upstream.\nOther InfluxData-products might be affected as well, if they use these sources. The following files will be deleted:\n--> $INFLUXDATA_SRCPATH\n--> $INFLUXDATA_KEYPATH\n\nDo you want to remove these files?" 16 78 --no-button "Return"); then
         echo "[influx-upstream-remove]: User selected Yes, exit status was $?."
         # Iterate files, delete if it exists
         for file in "${files[@]}"; do
@@ -55,30 +55,42 @@ function remove_influxdata_upstream() {
                 rm "$file"
             fi
         done
-        whiptail --title "InfluxData-repository" --msgbox "InfluxData-repository source and/or GPG-key deleted." 18 78
+        whiptail --title "InfluxData-repository" --msgbox "InfluxData-repository source and/or GPG-key deleted." 10 78
     else
-        echo "[influx-upstream-remove]: User selected No, exit status was $?."
+        echo "[influx-upstream-remove]: User selected Return, exit status was $?."
         return 1
     fi
 }
 
 # Add InfluxData related GPG-keys and listed sources to system
 function add_influxdata_upstream() {
+
+    if [[ -f "$INFLUXDATA_KEYPATH" ]] || [[ -f "$INFLUXDATA_SRCPATH" ]]; then
+        if (whiptail --title "Warning" --yesno "InfluxData related files (GPG-key and/or source-repository) are found on this system. If you proceed these files will be overwritten.\n\nDo you want to continue?" 12 78 --no-button "Return"); then
+            echo "[influxdata-upstream-add (overwrite)]: User selected Yes, exit status was $?."
+            [[ -f "$TITEMPDIR/influxdata-archive_compat.key" ]] && rm "$TITEMPDIR/influxdata-archive_compat.key"
+        else
+            echo "[influxdata-upstream-add (overwrite)]: User selected No, exit status was $?."
+            return 1
+        fi
+    fi
+
     TITEMPDIR=$(whiptail --inputbox "Select temporary file-path to store InfluxData GPG-key:" 10 78 /tmp/telegraf-installer --title "Temporary file-path" --cancel-button "Return" 3>&1 1>&2 2>&3)
     exitstatus=$?
     if [ $exitstatus = 0 ]; then
-        echo "[influx-upstream (path)]: User selected Ok and entered " $TITEMPDIR
+        echo "[influxdata-upstream (path)]: User selected Ok and entered " $TITEMPDIR
     else
-        echo "[influx-upstream (path)]: User selected Cancel."
+        echo "[influxdata-upstream (path)]: User selected Cancel."
         return 1
     fi
 
     # Check if temporary directory already exists
     if [[ -d $TITEMPDIR ]]; then
         if (whiptail --title "Warning" --yesno "$TITEMPDIR already exists and continuing might overwrite files located in that directory.\n\nDo you want to continue?" 12 78 --no-button "Return"); then
-            echo "[influx-upstream-add (overwrite)]: User selected Yes, exit status was $?."
+            echo "[influxdata-upstream-add (overwrite)]: User selected Yes, exit status was $?."
+            [[ -f "$TITEMPDIR/influxdata-archive_compat.key" ]] && rm "$TITEMPDIR/influxdata-archive_compat.key"
         else
-            echo "[influx-upstream-add (overwrite)]: User selected No, exit status was $?."
+            echo "[influxdata-upstream-add (overwrite)]: User selected No, exit status was $?."
             return 1
         fi
     fi
@@ -88,10 +100,10 @@ function add_influxdata_upstream() {
     echo "Created temporary directory: $TITEMPDIR"
 
     # Download GPG-key
-    if [ wget -q https://repos.influxdata.com/influxdata-archive_compat.key ]; then
-        echo "GPG-key downloaded using wget"
-    elif [ curl -s https://repos.influxdata.com/influxdata-archive_compat.key ] >influxdata-archive_compat.key; then
-        echo "GPG-key downloaded using curl"
+    if [[ $(wget -q https://repos.influxdata.com/influxdata-archive_compat.key) -eq 0 ]]; then
+        echo "[influxdata-upstream]: GPG-key downloaded using wget."
+    elif [[ $(curl -s https://repos.influxdata.com/influxdata-archive_compat.key >influxdata-archive_compat.key) -eq 0 ]]; then
+        echo "[influxdata-upstream]: GPG-key downloaded using curl."
     else
         echo "ERROR: Could not download the Influxdata GPG-key." >&2
         return 1
@@ -103,7 +115,7 @@ function add_influxdata_upstream() {
     echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
     cd -
 
-    whiptail --title "InfluxData-repository" --msgbox "Repository added to sources." 18 78
+    whiptail --title "InfluxData-repository" --msgbox "Repository added to sources." 10 78
 }
 
 # Check status of given options on this machine
@@ -132,7 +144,8 @@ function exitorinstall() {
     exitstatus=$?
     if [ $exitstatus = 0 ]; then
         programs=$(echo $result | sed 's/" /\n/g' | sed 's/"//g')
-        echo $programs
+        echo "[package-options]: User selected: $programs"
+        [[ -z $programs ]] && echo "[install-update]: No programs selected." && return
         [[ "${programs[*]}" =~ "telegraf" ]] && telegrafwarning
         apt-get -y --ignore-missing install $programs || echo "ERROR: Installation failed. Could not install selected programs." >&2
     else
@@ -252,10 +265,12 @@ function packages() {
     title="Packages"
     text="Use Arrow-, Space- and Tab-keys to control the menu.\nSelect the programs which you want to install.\nPrograms marked with '*' are already found on the system, unselecting them in this menu will not uninstall them.\nIf selected programs are already installed, they will be updated to latest available version instead."
     local -A checkboxes
-    checkboxes["wget"]="wget"
     checkboxes["curl"]="curl"
-    checkboxes["tmux"]="tmux"
+    checkboxes["fzf"]="fzf"
+    checkboxes["git"]="git"
     checkboxes["telegraf"]="telegraf"
+    checkboxes["tmux"]="tmux"
+    checkboxes["wget"]="wget"
 
     installeroptions && selectoptions && exitorinstall
 }
@@ -276,6 +291,7 @@ function precheck() {
     return 0
 }
 
+# Exit notice
 function installerexit() {
     whiptail --title "Exit" --msgbox "You have exited the installer. Click OK to close this window." 8 78 && exit 1
 }
