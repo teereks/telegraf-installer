@@ -122,11 +122,10 @@ function add_influxdata_upstream() {
 function installeroptions() {
     choices=()
     for key in "${!checkboxes[@]}"; do
-        spacer=$(for i in $(seq 1 54); do echo -n " "; done)
         if ! [ -x "$(command -v ${checkboxes[$key]})" ]; then
-            choices+=("${key}" "${spacer}" "OFF")
+            choices+=("${key}" "$(printf '%-54s' "${pkgdescriptions[$key]}")" "OFF")
         else
-            choices+=("${key}" "${spacer}" "ON")
+            choices+=("${key}" "$(printf '%-54s' "${pkgdescriptions[$key]}")" "ON")
         fi
     done
 }
@@ -263,14 +262,21 @@ function telegrafinfo() {
 # Present programs to install
 function packages() {
     title="Packages"
-    text="Use Arrow-, Space- and Tab-keys to control the menu.\nSelect the programs which you want to install.\nPrograms marked with '*' are already found on the system, unselecting them in this menu will not uninstall them.\nIf selected programs are already installed, they will be updated to latest available version instead."
+    text="Select the programs which you want to install. Use Arrow-, Space- and Tab-keys to control the menu. Programs marked with '*' are already found on the system, unselecting them in this menu will not uninstall them.\n\nIf selected programs are already installed, they will be updated to latest available version instead."
     local -A checkboxes
+    local -A pkgdescriptions
     checkboxes["curl"]="curl"
+    pkgdescriptions["curl"]="tool to transfer data from or to a server"
     checkboxes["fzf"]="fzf"
+    pkgdescriptions["fzf"]="command-line fuzzy finder"
     checkboxes["git"]="git"
+    pkgdescriptions["git"]="distributed version control system"
     checkboxes["telegraf"]="telegraf"
+    pkgdescriptions["telegraf"]="server-based agent for collecting & sending metrics"
     checkboxes["tmux"]="tmux"
+    pkgdescriptions["tmux"]="terminal multiplexer"
     checkboxes["wget"]="wget"
+    pkgdescriptions["wget"]="non-interactive network downloader"
 
     installeroptions && selectoptions && exitorinstall
 }
