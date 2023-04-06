@@ -70,7 +70,7 @@ function add_influxdata_upstream() {
             echo "[influxdata-upstream-add (overwrite)]: User selected Yes, exit status was $?."
             [[ -f "$TITEMPDIR/influxdata-archive_compat.key" ]] && rm "$TITEMPDIR/influxdata-archive_compat.key"
         else
-            echo "[influxdata-upstream-add (overwrite)]: User selected No, exit status was $?."
+            echo "[influxdata-upstream-add (overwrite)]: User selected Return, exit status was $?."
             return 1
         fi
     fi
@@ -80,7 +80,7 @@ function add_influxdata_upstream() {
     if [ $exitstatus = 0 ]; then
         echo "[influxdata-upstream (path)]: User selected Ok and entered " $TITEMPDIR
     else
-        echo "[influxdata-upstream (path)]: User selected Cancel."
+        echo "[influxdata-upstream (path)]: User selected Return, exit status was $?."
         return 1
     fi
 
@@ -134,7 +134,7 @@ function installeroptions() {
 function selectoptions() {
     result=$(whiptail --title "$title" --checklist "$text" 22 78 8 --cancel-button "Exit" "${choices[@]}" 3>&2 2>&1 1>&3-)
     exitstatus=$?
-    [[ $exitstatus = 1 ]] && installerexit
+    [[ $exitstatus -ne 0 ]] && installerexit
     return 0
 }
 
@@ -174,7 +174,7 @@ function definehold() {
                 "3)" "Unhold $1" 3>&2 2>&1 1>&3
         )
         exitstatus=$?
-        [[ $exitstatus = 1 ]] && return
+        [[ $exitstatus -ne 0 ]] && echo "[hold-menu]: User selection, exit status was $exitstatus." && return
 
         echo "[hold-menu]: User selected: $HOLDCHOICE"
         case $HOLDCHOICE in
@@ -198,15 +198,14 @@ function definehold() {
 function telegrafmenu() {
     while [ 1 ]; do
         CHOICE=$(
-            whiptail --title "Telegraf Operations" --menu "Select 'Finish' to continue installing previously selected programs." 14 78 6 --cancel-button "Exit" \
+            whiptail --title "Telegraf Operations" --menu "Here you can check the status of Telegraf and perform some operations related to it. After performing necessary operations select 'Finish' to continue installing/updating other selected programs." 16 78 6 --cancel-button "Exit" \
                 "1)" "Check Telegraf information" \
                 "2)" "Hold/Unhold updates" \
                 "3)" "Add InfluxData repository as source" \
                 "4)" "Remove InfluxData repository from sources" \
                 "5)" "Finish" 3>&2 2>&1 1>&3
         )
-        exitstatus=$?
-        [[ $exitstatus = 1 ]] && installerexit
+        [[ $? -ne 0 ]] && installerexit
 
         echo "[telegraf-menu]: User selected: $CHOICE"
         case $CHOICE in
@@ -290,7 +289,7 @@ function precheck() {
         install_packages "${PREREQUISITES[@]}"
         check_command_availability "${PREREQUISITES[@]}"
         if [ $? -ne 0 ]; then echo "ERROR: Failed to install prerequisites." >&2 && exit 1; fi
-        echo "[precheck]:Prerequisites installed succesfully!"
+        echo "[precheck]: Prerequisites installed succesfully!"
     else
         echo "[precheck]: All prerequisites found!"
     fi
@@ -306,6 +305,7 @@ verify_root
 precheck
 
 whiptail --title "Telegraf-Installer" --msgbox "Welcome to Telegraf-Installer. Select OK to continue." 10 78
+[[ $? -ne 0 ]] && installerexit
 
 if (whiptail --title "Telegraf-Installer" --yesno "This script is mainly used to install Telegraf and other related packages on this machine. Installing packages using this script requires working Internet-connection, so make sure to verify this before advancing the installer.\n\nDo you want to continue?" 12 78 --no-button "Exit" --yes-button "Continue"); then
     echo "[verify-inet]: User selected Continue, exit status was $?."
@@ -315,7 +315,6 @@ else
 fi
 
 packages
-exitstatus=$?
-[[ $exitstatus = 1 ]] && installerexit
+[[ $$? -ne 0 ]] && installerexit
 
 whiptail --title "Finished" --msgbox "Installer has finished. Click OK exit." 8 78
