@@ -11,8 +11,8 @@ These are the variables that are necessary to define before you can start runnin
 | HTTP_OUTPUT1_ALIAS  	| Name for first HTTP-output, only used for logging and debugging	| string  	|
 | HTTP_OUTPUT1_URL  	| URL where metrics are sent if `$database_tag == $DEST_DB1`	| string  	|
 | DEST_DB1  	| Name of the first destination database where metrics are routed locally	| string  	|
-| HTTP_OUTPUT1_ALIAS  	| Name for second HTTP-output, only used for logging and debugging	| string  	|
-| HTTP_OUTPUT1_URL  	| URL where metrics are sent if `$database_tag == $DEST_DB2`	| string  	|
+| HTTP_OUTPUT2_ALIAS  	| Name for second HTTP-output, only used for logging and debugging	| string  	|
+| HTTP_OUTPUT2_URL  	| URL where metrics are sent if `$database_tag == $DEST_DB2`	| string  	|
 | DEST_DB2  	| Name of the second destination database where metrics are routed locally	| string  	|
 
 
@@ -26,6 +26,12 @@ These are the variables that are necessary to define before you can start runnin
 - 2 x `http`
 - 1 x `influxdb` 
 
+## Agent
+
+Agent-configuration can be found in: [telegraf.conf](telegraf.conf).
+
+- Agent configuration manages flushing and buffering metrics.
+- Controlling inputs in unnecessary, since here the `inputs.influxdb_listener` is service input, which means that it will be listening for incoming metrics constantly.
 
 ## Inputs
 
