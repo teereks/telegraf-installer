@@ -53,5 +53,5 @@ This script enables user to install `Telegraf` on Debian and Ubuntu using simple
     ./telegraf-installer.sh
     ```
 
-
+    *Note:* The script requires you to run it as `root` -user (EUID must be 0) to make any changes on the system.
 
