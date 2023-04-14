@@ -1,0 +1,6 @@
+HTTP_OUTPUT1_ALIAS="machine1"
+HTTP_OUTPUT1_URL="https://your-url-here.com/machine1-api-key-here"
+DEST_DB1="dbMachine1"
+HTTP_OUTPUT2_ALIAS="machine2"
+HTTP_OUTPUT2_URL="https://your-url-here.com/machine2-api-key-here"
+DEST_DB2="dbMachine2"
