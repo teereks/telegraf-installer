@@ -78,7 +78,7 @@ This configuration uses environment variables to allow for easier deployment for
     ```
 
 - In that file you need to define values to the required variables. You can see the table of required environment variables here: [Required Environment Variables](#environment-variables).
-- Here is an exmple of how the environment variables file could look like:
+- Here is an exmple of how the environment variables file could look like, same file can be seen [here](telegraf):
 
     ```bash
     HTTP_OUTPUT1_ALIAS="machine1"
