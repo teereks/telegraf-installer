@@ -55,7 +55,7 @@ function remove_influxdata_upstream() {
                 rm "$file"
             fi
         done
-        whiptail --title "InfluxData-repository" --msgbox "InfluxData-repository source and/or GPG-key deleted." 10 78
+        whiptail --title "InfluxData-Repository" --msgbox "InfluxData-repository source and/or GPG-key deleted." 10 78
     else
         echo "[influx-upstream-remove]: User selected Return, exit status was $?."
         return 1
@@ -115,7 +115,7 @@ function add_influxdata_upstream() {
     echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
     cd -
 
-    whiptail --title "InfluxData-repository" --msgbox "Repository added to sources." 10 78
+    whiptail --title "InfluxData-Repository" --msgbox "Repository added to sources." 10 78
 }
 
 # Check status of given options on this machine
@@ -296,6 +296,130 @@ function precheck() {
     return 0
 }
 
+# Install and update programs
+function installprograms() {
+    if (whiptail --title "Install and Update Programs" --yesno "This part of the script is used to install and update programs on this machine. Installing programs using this script requires working Internet-connection, so make sure to verify this before advancing the installer.\n\nDo you want to continue?" 12 78 --no-button "Exit" --yes-button "Continue"); then
+        echo "[verify-inet]: User selected Continue, exit status was $?."
+    else
+        echo "[verify-inet]: User selected Exit, exit status was $?."
+        installerexit
+    fi
+
+    packages
+    [[ $? -ne 0 ]] && installerexit
+
+    whiptail --title "Finished" --msgbox "Installer has finished. Click OK exit." 8 78
+}
+
+# Manage bundled configurations
+function manageconfigs() {
+    # Select program for which you want to deploy configuration
+    declare -a programs
+    PROGRAMPATHS=($(ls -d accessory-configs/*/))
+
+    # List programs with configurations in the repo
+    for progpath in "${PROGRAMPATHS[@]}"; do
+        dir=$(echo $progpath | awk -F "/" '{print $(NF-1)}')
+        programs+=("$dir")
+        programs+=("")
+    done
+    echo "[manage-configs]: Found bundled configs for programs: ${programs[@]}"
+
+    PROGRAM=$(whiptail --title "Select program" --menu "Select programs for which you want to deploy bundled configuration." 16 78 6 --cancel-button "Exit" "${programs[@]}" 3>&2 2>&1 1>&3)
+    [[ $? -ne 0 ]] && installerexit
+    echo "[manage-configs]: User selected program: $PROGRAM"
+
+    # Select target configuration from included configs
+    declare -a configs
+    CONFIGPATHS=($(ls -d accessory-configs/$PROGRAM/*/))
+
+    # List availablle configurations for selected program
+    for configpath in "${CONFIGPATHS[@]}"; do
+        dir=$(echo $configpath | awk -F "/" '{print $(NF-1)}')
+        configs+=("$dir")
+        configs+=("")
+    done
+    echo "[manage-configs]: Found bundled configs for $PROGRAM: ${configs[@]}"
+
+    CONFIG=$(whiptail --title "Select configuration" --menu "Select configuration which you want to deploy on this system. Please refer to the documentation for more information about available configurations." 18 78 6 --cancel-button "Exit" "${configs[@]}" 3>&2 2>&1 1>&3)
+    [[ $? -ne 0 ]] && installerexit
+    echo "[manage-configs]: User selected configuration: $CONFIG"
+
+    # List avalable files for selected configuration (ignore markdown-files)
+    declare -a configurationfiles
+    CONFIGFILES=($(ls accessory-configs/$PROGRAM/$CONFIG/ | grep -v ".md"))
+
+    for configfile in "${CONFIGFILES[@]}"; do
+        file=$(echo $configfile | awk -F "/" '{print $(NF-1)}')
+        configurationfiles+=("$file")
+        configurationfiles+=("")
+    done
+    echo "[manage-configs]: Found bundled files for $CONFIG: ${configurationfiles[@]}"
+
+    # Set default path-offerings
+    defaultagentpath="/etc/telegraf/"
+    defaultpluginpath="/etc/telegraf/telegraf.d/"
+    defaultenvpath="/etc/default/"
+
+    # Menu for user to handle configuration file one at a time
+    while [ 1 ]; do
+        CONFIGFILE=$(whiptail --title "Select file" --menu "Select file which you want handle next. Please refer to the documentation for more information about these files." 18 78 6 --cancel-button "Finish" "${configurationfiles[@]}" 3>&2 2>&1 1>&3)
+        [[ $? -ne 0 ]] && installerexit
+        echo "[manage-configs]: User selected file: $CONFIGFILE"
+
+        if [[ "$CONFIGFILE" == "telegraf.conf" ]]; then
+            suggestedpath=$defaultagentpath
+        elif [[ "$CONFIGFILE" == "telegraf" ]]; then
+            suggestedpath=$defaultenvpath
+        else
+            suggestedpath=$defaultpluginpath
+        fi
+
+        # Ask user for destination path and offer previously defined default-value
+        destinationpath=$(whiptail --inputbox "Insert absolute (full) file path where you want to copy this file (remember to end path with '/' since it should be directory instead of file):\n\n->$CONFIGFILE" 14 78 $suggestedpath --title "File path" --cancel-button "Return" 3>&1 1>&2 2>&3)
+        if [[ $? -eq 0 ]]; then
+            if (whiptail --title "Warning" --yesno "Do you want to transfer: $CONFIGFILE to $destinationpath?\nIf file already exists with the same name, it will be overwritten." 12 78 --no-button "Return"); then
+                echo "[manage-configs]: User selected Continue, exit status was $?."
+                # Write file to target location
+                cat accessory-configs/$PROGRAM/$CONFIG/$CONFIGFILE >"$destinationpath$CONFIGFILE"
+                echo "SIMULATED FILE-WRITE!"
+            else
+                echo "[manage-configs]: User selected Return, exit status was $?."
+            fi
+        fi
+    done
+
+    # Offer to customize default-file to adjust environment variables (and all the other files too?)
+
+    # Finish (offer to restart programs i.e. Telegraf.)
+
+    installerexit
+}
+
+# Inital Start-menu
+function startmenu() {
+    CHOICE=$(
+        whiptail --title "Start" --menu "Please select what operations you want to perform." 16 78 6 --cancel-button "Exit" \
+            "1)" "Install and update programs" \
+            "2)" "Manage bundled configurations" \
+            "3)" "Exit" 3>&2 2>&1 1>&3
+    )
+    [[ $? -ne 0 ]] && installerexit
+
+    echo "[start-menu]: User selected: $CHOICE"
+    case $CHOICE in
+    "1)")
+        installprograms
+        ;;
+    "2)")
+        manageconfigs
+        ;;
+    "3)")
+        installerexit
+        ;;
+    esac
+}
+
 # Exit notice
 function installerexit() {
     whiptail --title "Exit" --msgbox "You have exited the installer. Click OK to close this window." 8 78 && exit 1
@@ -307,14 +431,4 @@ precheck
 whiptail --title "Telegraf-Installer" --msgbox "Welcome to Telegraf-Installer. Select OK to continue." 10 78
 [[ $? -ne 0 ]] && installerexit
 
-if (whiptail --title "Telegraf-Installer" --yesno "This script is mainly used to install Telegraf and other related packages on this machine. Installing packages using this script requires working Internet-connection, so make sure to verify this before advancing the installer.\n\nDo you want to continue?" 12 78 --no-button "Exit" --yes-button "Continue"); then
-    echo "[verify-inet]: User selected Continue, exit status was $?."
-else
-    echo "[verify-inet]: User selected Exit, exit status was $?."
-    installerexit
-fi
-
-packages
-[[ $$? -ne 0 ]] && installerexit
-
-whiptail --title "Finished" --msgbox "Installer has finished. Click OK exit." 8 78
+startmenu
