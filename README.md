@@ -35,7 +35,7 @@ This script enables user to install `Telegraf` on Debian and Ubuntu using simple
     curl -OJ https://raw.githubusercontent.com/teereks/telegraf-installer/main/telegraf-installer.sh
     ``` 
 
-2. (optional) - If you used `git clone` to download script in the previous step, you can set your active path to downloaded repository with command:
+2. (Optional) - If you used `git clone` to download script in the previous step, you can set your active path to downloaded repository with command:
 
     ```bash
     cd telegraf-installer/
@@ -55,3 +55,26 @@ This script enables user to install `Telegraf` on Debian and Ubuntu using simple
 
     *Note:* The script requires you to run it as `root` -user (EUID must be 0) to make any changes on the system.
 
+5. At the beginning of the script user will be offered "Start Menu" which allows for some common tasks to be performed. You might need to run the script multiple times if you want to perform more than one of these tasks in one go. Start menu will give following user the options:
+![startmenu.png](/media/startmenu.PNG "Start Menu ")
+    - **Install and update programs** allows user to install new programs and update existing ones.
+    - **Import bundled configurations** allows user to deploy configurations (per program) that are included in the repository itself.
+    - **Manage program configurations** enables user to checkout and modify currently deployed configurations (per program) as well as make modifications to the contents.
+
+6. (Optional) - If you made changes to the `Systemd Units` remember to reload systemd manager configuration by running:
+
+    ```bash
+    systemctl daemon-reload
+    ```
+
+    And then restart your service by running:
+
+    ```bash
+    systemctl restart <your-service>
+    ```
+    
+    Verify that your service started succesfully with command:
+
+    ```bash
+    systemctl status <your-service>
+    ```

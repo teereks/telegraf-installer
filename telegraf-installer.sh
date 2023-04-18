@@ -429,34 +429,37 @@ function manageconfigs() {
         defaultagentpath="/etc/telegraf/"
         defaultpluginpath="/etc/telegraf/telegraf.d/"
         defaultenvpath="/etc/default/telegraf"
+        defaultservicepath="/lib/systemd/system/telegraf.service"
         AGENTCONFIGS=($(find $defaultagentpath -maxdepth 1 -not -type d))
         PLUGINCONFIGS=($(find $defaultpluginpath -maxdepth 1 -not -type d))
-        ENVCONFIGS=($(find $defaultenvpath -maxdepth 1 -not -type d))
+        #ENVCONFIGS=($(find $defaultenvpath -maxdepth 1 -not -type d))
 
-        echo "defaultagentpath: $defaultagentpath"
-        echo "defaultpluginpath: $defaultpluginpath"
-        echo "defaultenvpath: $defaultenvpath"
+        # echo "defaultagentpath: $defaultagentpath"
+        # echo "defaultpluginpath: $defaultpluginpath"
+        # echo "defaultenvpath: $defaultenvpath"
 
         for configfile in "${AGENTCONFIGS[@]}"; do
-            #file=$(echo $configfile | awk -F "/" '{print $(NF-1)}')
             systemprogramfiles+=("$configfile")
             systemprogramfiles+=("")
         done
         for configfile in "${PLUGINCONFIGS[@]}"; do
-            #file=$(echo $configfile | awk -F "/" '{print $(NF-1)}')
             systemprogramfiles+=("$configfile")
             systemprogramfiles+=("")
         done
-        for configfile in "${ENVCONFIGS[@]}"; do
-            #file=$(echo $configfile | awk -F "/" '{print $(NF-1)}')
-            systemprogramfiles+=("$configfile")
-            systemprogramfiles+=("")
-        done
+        # for configfile in "${ENVCONFIGS[@]}"; do
+        #     systemprogramfiles+=("$configfile")
+        #     systemprogramfiles+=("")
+        # done
+
+        systemprogramfiles+=($(find $defaultenvpath -maxdepth 1 -not -type d))
+        systemprogramfiles+=("")
+        systemprogramfiles+=($(find $defaultservicepath -maxdepth 1 -not -type d))
+        systemprogramfiles+=("")
     fi
 
     # Offer all program related configuration files here
     while [ 1 ]; do
-        modifyconfig=$(whiptail --title "Select file" --menu "Select file which you want handle next.\nSelecting file will open it using text-editor (nano). After modifications use key-combination: 'Ctrl + x' to exit the editor, press key: 'y' to allow saving modifications and then accept filewrite using key: 'Enter'.\n\nAfter you are done modifying files select 'Finish' to exit." 26 78 10 --cancel-button "Finish" "${systemprogramfiles[@]}" 3>&2 2>&1 1>&3)
+        modifyconfig=$(whiptail --title "Select file" --menu "Select file which you want handle next.\n\nSelecting file will open it using text-editor (nano). After modifications use key-combination: 'Ctrl + x' to exit the editor, press key: 'y' to allow saving modifications and then accept filewrite using key: 'Enter'.\n\nAfter you are done modifying files select 'Finish' to exit." 26 78 10 --cancel-button "Finish" "${systemprogramfiles[@]}" 3>&2 2>&1 1>&3)
         [[ $? -ne 0 ]] && break
         echo "[manage-configs]: User selected to open file: $modifyconfig"
 
