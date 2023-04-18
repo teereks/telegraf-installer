@@ -312,7 +312,7 @@ function installprograms() {
 }
 
 # Manage bundled configurations
-function manageconfigs() {
+function importconfigs() {
     # Select program for which you want to deploy configuration
     declare -a programs
     PROGRAMPATHS=($(ls -d accessory-configs/*/))
@@ -323,11 +323,11 @@ function manageconfigs() {
         programs+=("$dir")
         programs+=("")
     done
-    echo "[manage-configs]: Found bundled configs for programs: ${programs[@]}"
+    echo "[import-configs]: Found bundled configs for programs: ${programs[@]}"
 
     PROGRAM=$(whiptail --title "Select program" --menu "Select programs for which you want to deploy bundled configuration." 16 78 6 --cancel-button "Exit" "${programs[@]}" 3>&2 2>&1 1>&3)
     [[ $? -ne 0 ]] && installerexit
-    echo "[manage-configs]: User selected program: $PROGRAM"
+    echo "[import-configs]: User selected program: $PROGRAM"
 
     # Select target configuration from included configs
     declare -a configs
@@ -339,11 +339,11 @@ function manageconfigs() {
         configs+=("$dir")
         configs+=("")
     done
-    echo "[manage-configs]: Found bundled configs for $PROGRAM: ${configs[@]}"
+    echo "[import-configs]: Found bundled configs for $PROGRAM: ${configs[@]}"
 
     CONFIG=$(whiptail --title "Select configuration" --menu "Select configuration which you want to deploy on this system. Please refer to the documentation for more information about available configurations." 18 78 6 --cancel-button "Exit" "${configs[@]}" 3>&2 2>&1 1>&3)
     [[ $? -ne 0 ]] && installerexit
-    echo "[manage-configs]: User selected configuration: $CONFIG"
+    echo "[import-configs]: User selected configuration: $CONFIG"
 
     # List avalable files for selected configuration (ignore markdown-files)
     declare -a configurationfiles
@@ -354,7 +354,7 @@ function manageconfigs() {
         configurationfiles+=("$file")
         configurationfiles+=("")
     done
-    echo "[manage-configs]: Found bundled files for $CONFIG: ${configurationfiles[@]}"
+    echo "[import-configs]: Found bundled files for $CONFIG: ${configurationfiles[@]}"
 
     # Set default path-offerings
     defaultagentpath="/etc/telegraf/"
@@ -364,8 +364,8 @@ function manageconfigs() {
     # Menu for user to handle configuration file one at a time
     while [ 1 ]; do
         CONFIGFILE=$(whiptail --title "Select file" --menu "Select file which you want handle next. Please refer to the documentation for more information about these files." 18 78 6 --cancel-button "Finish" "${configurationfiles[@]}" 3>&2 2>&1 1>&3)
-        [[ $? -ne 0 ]] && installerexit
-        echo "[manage-configs]: User selected file: $CONFIGFILE"
+        [[ $? -ne 0 ]] && break
+        echo "[import-configs]: User selected file: $CONFIGFILE"
 
         if [[ "$CONFIGFILE" == "telegraf.conf" ]]; then
             suggestedpath=$defaultagentpath
@@ -379,21 +379,90 @@ function manageconfigs() {
         destinationpath=$(whiptail --inputbox "Insert absolute (full) file path where you want to copy this file (remember to end path with '/' since it should be directory instead of file):\n\n->$CONFIGFILE" 14 78 $suggestedpath --title "File path" --cancel-button "Return" 3>&1 1>&2 2>&3)
         if [[ $? -eq 0 ]]; then
             if (whiptail --title "Warning" --yesno "Do you want to transfer: $CONFIGFILE to $destinationpath?\nIf file already exists with the same name, it will be overwritten." 12 78 --no-button "Return"); then
-                echo "[manage-configs]: User selected Continue, exit status was $?."
+                echo "[import-configs]: User selected Continue, exit status was $?."
                 # Write file to target location
                 cat accessory-configs/$PROGRAM/$CONFIG/$CONFIGFILE >"$destinationpath$CONFIGFILE"
-                echo "SIMULATED FILE-WRITE!"
             else
-                echo "[manage-configs]: User selected Return, exit status was $?."
+                echo "[import-configs]: User selected Return, exit status was $?."
             fi
         fi
     done
 
-    # Offer to customize default-file to adjust environment variables (and all the other files too?)
-
-    # Finish (offer to restart programs i.e. Telegraf.)
+    # Offer user to start configuration-management
+    if (whiptail --title "Manage programs" --yesno "You have finished importing configurations to your system.\n\nDo you want to start managing program configurations now?" 12 78 --no-button "Exit"); then
+        echo "[import-configs]: User selected Yes to manage programs, exit status was $?."
+        manageconfigs
+    else
+        echo "[import-configs]: User selected Exit, exit status was $?."
+        installerexit
+    fi
 
     installerexit
+}
+
+# Manage and modify configuration files for programs
+function manageconfigs() {
+    CHOICE=$(
+        whiptail --title "Select Program" --menu "Select program for which you want make modifications to:" 14 78 6 --cancel-button "Exit" \
+            "1)" "Telegraf" \
+            "2)" "Exit" 3>&2 2>&1 1>&3
+    )
+    exitstatus=$?
+    [[ $exitstatus -ne 0 ]] && echo "[manage-configs]: User selection, exit status was $exitstatus." && installerexit
+    echo "[manage-configs]: User selected: $CHOICE"
+
+    case $CHOICE in
+    "1)")
+        manageprogram="telegraf"
+        ;;
+    "2)")
+        installerexit
+        ;;
+    esac
+    echo "[manage-configs]: User selected to manage program: $manageprogram"
+
+    # Fetch all related configs on the system
+    declare -a systemprogramfiles
+    if [[ $manageprogram == "telegraf" ]]; then
+        #list all related directories here and offer the files included in them later to user to use nano
+        declare -a configurationfiles
+        defaultagentpath="/etc/telegraf/"
+        defaultpluginpath="/etc/telegraf/telegraf.d/"
+        defaultenvpath="/etc/default/telegraf"
+        AGENTCONFIGS=($(find $defaultagentpath -maxdepth 1 -not -type d))
+        PLUGINCONFIGS=($(find $defaultpluginpath -maxdepth 1 -not -type d))
+        ENVCONFIGS=($(find $defaultenvpath -maxdepth 1 -not -type d))
+
+        echo "defaultagentpath: $defaultagentpath"
+        echo "defaultpluginpath: $defaultpluginpath"
+        echo "defaultenvpath: $defaultenvpath"
+
+        for configfile in "${AGENTCONFIGS[@]}"; do
+            #file=$(echo $configfile | awk -F "/" '{print $(NF-1)}')
+            systemprogramfiles+=("$configfile")
+            systemprogramfiles+=("")
+        done
+        for configfile in "${PLUGINCONFIGS[@]}"; do
+            #file=$(echo $configfile | awk -F "/" '{print $(NF-1)}')
+            systemprogramfiles+=("$configfile")
+            systemprogramfiles+=("")
+        done
+        for configfile in "${ENVCONFIGS[@]}"; do
+            #file=$(echo $configfile | awk -F "/" '{print $(NF-1)}')
+            systemprogramfiles+=("$configfile")
+            systemprogramfiles+=("")
+        done
+    fi
+
+    # Offer all program related configuration files here
+    while [ 1 ]; do
+        modifyconfig=$(whiptail --title "Select file" --menu "Select file which you want handle next.\nSelecting file will open it using text-editor (nano). After modifications use key-combination: 'Ctrl + x' to exit the editor, press key: 'y' to allow saving modifications and then accept filewrite using key: 'Enter'.\n\nAfter you are done modifying files select 'Finish' to exit." 26 78 10 --cancel-button "Finish" "${systemprogramfiles[@]}" 3>&2 2>&1 1>&3)
+        [[ $? -ne 0 ]] && break
+        echo "[manage-configs]: User selected to open file: $modifyconfig"
+
+        nano $modifyconfig
+    done
+
 }
 
 # Inital Start-menu
@@ -401,8 +470,9 @@ function startmenu() {
     CHOICE=$(
         whiptail --title "Start" --menu "Please select what operations you want to perform." 16 78 6 --cancel-button "Exit" \
             "1)" "Install and update programs" \
-            "2)" "Manage bundled configurations" \
-            "3)" "Exit" 3>&2 2>&1 1>&3
+            "2)" "Import bundled configurations" \
+            "3)" "Manage program configurations" \
+            "4)" "Exit" 3>&2 2>&1 1>&3
     )
     [[ $? -ne 0 ]] && installerexit
 
@@ -412,9 +482,12 @@ function startmenu() {
         installprograms
         ;;
     "2)")
-        manageconfigs
+        importconfigs
         ;;
     "3)")
+        manageconfigs
+        ;;
+    "4)")
         installerexit
         ;;
     esac
