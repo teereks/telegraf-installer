@@ -4,4 +4,22 @@ This directory contains some configurations which can be used to get you started
 
 These configurations do not contain any personal of sensitive information, but if you do need to supply some information using i.e. environment variables make sure to backup or store that information securely somewhere else.
 
-Configurations are categorized by their related applications. If you are planning to use any of these configurations on your applications, please read the related documentation carefully.
+Configurations are categorized by host program. If you are planning to use any of these configurations on your applications, please read the related documentation carefully.
+
+## Requirements
+
+All the included configurations for each of the programs should have necessary documentation included. Relevant information varies from program to program, but the documentation should always include instructions on how to get the application up and running with the included configuration.
+
+It is also helpful to include additional information in the instructions like:
+- Suggested default locations for configuration files (or default `service unit` -file contents if available)
+- Systemd (or other System and Service manager) related file locations
+- Links to official documentation if available 
+
+
+### Available programs and applications
+
+This table lists all the programs that have configurations included in this repository.
+
+| Program | Description |
+|---|---|
+| [telegraf](telegraf) | Server-based agent for collecting and sending all metrics and events from databases, systems, and IoT sensors. | 
