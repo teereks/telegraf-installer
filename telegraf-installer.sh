@@ -307,7 +307,7 @@ function precheck() {
 function installprograms() {
     if (whiptail --title "Install and Update Programs" --yesno "You can select to install programs bundled with this installer without internet-connection. This is suggested only for offline systems and non-compatible distributions.\n\nSelect 'Online' to download and install programs from public sources.\nSelect 'Offline' to install included binaries." 12 78 --no-button "Offline" --yes-button "Online"); then
         echo "[online-offline-install]: User selected Online, exit status was $?."
-    else
+    else # Start offline-installer
         echo "[online-offline-install]: User selected Offline, exit status was $?."
         # Select program you want to install from included binaries
         declare -a binaryprograms
@@ -321,13 +321,13 @@ function installprograms() {
         done
         echo "[install-binary]: Found bundled programs with binaries: ${binaryprograms[@]}"
 
-        PROGRAM=$(whiptail --title "Select program" --menu "Select programs for which you want to install using included binaries." 16 78 6 --cancel-button "Exit" "${programs[@]}" 3>&2 2>&1 1>&3)
+        PROGRAM=$(whiptail --title "Select program" --menu "Select programs for which you want to install using included binaries." 16 78 6 --cancel-button "Exit" "${binaryprograms[@]}" 3>&2 2>&1 1>&3)
         [[ $? -ne 0 ]] && installerexit
         echo "[install-binary]: User selected program: $PROGRAM"
 
         # List available binaries for selected program
         declare -a binariesforprograms
-        BINARYPATHS=($(ls -d bin/$PROGRAM/*/))
+        BINARYPATHS=($(ls bin/$PROGRAM/))
 
         # List available binaries for selected program
         for configpath in "${BINARYPATHS[@]}"; do
@@ -341,14 +341,22 @@ function installprograms() {
         INSTALLBINARY=$(whiptail --title "Select binary" --menu "Select the binary-file which you want to install." 18 78 6 --cancel-button "Exit" "${binariesforprograms[@]}" 3>&2 2>&1 1>&3)
         [[ $? -ne 0 ]] && installerexit
         echo "[install-binary]: User selected binary-file: $INSTALLBINARY"
-        echo "SIMULATED DPKG -i COMMAND!"
-        installerexit
 
+        # Ask for verification
+        if (whiptail --title "Install program" --yesno "Are you sure that you want to install:\n\n$INSTALLBINARY\n\non this system?" 12 78 --no-button "Exit" --yes-button "Install"); then
+            echo "[online-offline-install]: User selected Install, exit status was $?."
+            echo "[online-offline-install]: Starting to install $INSTALLBINARY on this system..."
+            dpkg -i "bin/$PROGRAM/$INSTALLBINARY" || echo "[online-offline-install]: Installation failed, problem installing $INSTALLBINARY."
+
+            whiptail --title "Binary Installation" --msgbox "Successfully installed binary:\n\n$INSTALLBINARY" 12 78 --ok-button "Exit"
+        else
+            echo "[online-offline-install]: User selected Exit, exit status was $?."
+            installerexit
+        fi
+        installerexit
     fi
 
-    #---------------------------------------------------------------------
-    #OK
-
+    # Start online-installer
     if (whiptail --title "Install and Update Programs" --yesno "This part of the script is used to install and update programs on this machine. Installing programs using this script requires working Internet-connection, so make sure to verify this before advancing the installer.\n\nDo you want to continue?" 12 78 --no-button "Exit" --yes-button "Continue"); then
         echo "[verify-inet]: User selected Continue, exit status was $?."
     else
