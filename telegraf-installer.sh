@@ -110,9 +110,9 @@ function add_influxdata_upstream() {
     fi
 
     # Trust the key
-    echo '393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c influxdata-archive_compat.key' | sha256sum -c && cat influxdata-archive_compat.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg >/dev/null
+    echo '393e8779c89ac8d958f81f942f9ad7fb82a25e133faddaf92e15b16e6ac9ce4c influxdata-archive_compat.key' | sha256sum -c && cat influxdata-archive_compat.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg >/dev/null
     # Add Influxdata-repo as a package source
-    echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | sudo tee /etc/apt/sources.list.d/influxdata.list
+    echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive_compat.gpg] https://repos.influxdata.com/debian stable main' | tee /etc/apt/sources.list.d/influxdata.list
     cd -
 
     whiptail --title "InfluxData-Repository" --msgbox "Repository added to sources." 10 78
@@ -146,7 +146,7 @@ function exitorinstall() {
         echo "[package-options]: User selected: $programs"
         [[ -z $programs ]] && echo "[install-update]: No programs selected." && return
         [[ "${programs[*]}" =~ "telegraf" ]] && telegrafwarning
-        apt-get -y --ignore-missing install $programs || echo "ERROR: Installation failed. Could not install selected programs." >&2
+        apt-get update && apt-get -y --ignore-missing install $programs || echo "ERROR: Installation failed. Could not install selected programs." >&2
     else
         echo "[package-options]: User selected Cancel."
     fi
