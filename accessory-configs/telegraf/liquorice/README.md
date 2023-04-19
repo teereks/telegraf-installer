@@ -18,7 +18,9 @@ The next table shows all the files that you need to transfer to your system, thi
 | `inputs.conf` | Configuration for input-plugins | `/etc/telegraf/telegraf.d/` |
 | `outputs.conf` | Configuration for output-plugins | `/etc/telegraf/telegraf.d/` |
 | `telegraf` | File for setting environment variables  | `/etc/default/` |
+| `telegraf.service` | Service unit file (requires systemd-230 or newer)  | `/lib/systemd/system/` |
 
+> Notice that the included service-unit requires `systemd-230` or newer. If you are using older systemd version you need to change the `StartLimitIntervalSec` to `StartLimitInterval`.
 
 ## Environment variables
 
