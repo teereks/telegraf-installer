@@ -18,19 +18,20 @@ This script enables user to install `Telegraf` on Debian and Ubuntu using simple
 
 ## Usage
 
-1. Download this script and necessary files to your target machine.
+1. Download this script and necessary files to your target machine. Using `git clone` is suggested since it also download all the included configs, binaries and documentation to your system in one go. 
 
     **Using `git clone`:**
     ```bash
     git clone https://github.com/teereks/telegraf-installer.git
     ```
 
-    **Using `wget`:**
+    **Using `wget`**: *- notice that this only download the script, not included configs, binaries of documentation*
+
     ```bash
     wget https://raw.githubusercontent.com/teereks/telegraf-installer/main/telegraf-installer.sh
     ```
 
-    **Using `curl`:**
+    **Using `curl`**: *- notice that this only download the script, not included configs, binaries of documentation*
     ```bash
     curl -OJ https://raw.githubusercontent.com/teereks/telegraf-installer/main/telegraf-installer.sh
     ``` 
@@ -67,7 +68,7 @@ This script enables user to install `Telegraf` on Debian and Ubuntu using simple
     systemctl daemon-reload
     ```
 
-    And then restart your service by running:
+7. Finally you likely need to estart your service(s) that you have modified by running:
 
     ```bash
     systemctl restart <your-service>
