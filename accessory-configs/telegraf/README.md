@@ -20,7 +20,7 @@ List of all the available plugins and their documentation can be found here: htt
 |---|---|---|
 | Single-file configuration | File that will be read by `Telegraf` during it's startup. This can contain the whole configuration, but if you split your configuration this file is usually used to hold the `agent` configuration. | `/etc/telegraf/telegraf.conf` |
 | Additional configurations | Directory used to store any other configurations in addition to `/etc/telegraf/telegraf.conf`.  | `/etc/telegraf/telegraf.d/` |
-| Environmental Variables | If you use environmental variables to hide secrets or other sensitive information in your configurations, this is the file where you can define the values for those variables. Check documentation for for information here: [Setting Environmental Variables].(https://docs.influxdata.com/telegraf/v1.26/configuration/#set-environment-variables) | `/etc/default/telegraf` |
+| Environmental Variables | If you use environmental variables to hide secrets or other sensitive information in your configurations, this is the file where you can define the values for those variables. Check documentation for for information here: [Setting Environmental Variables](https://docs.influxdata.com/telegraf/v1.26/configuration/#set-environment-variables). | `/etc/default/telegraf` |
 | Service Unit | Configures the service unit for `Telegraf`.   | `/lib/systemd/system/telegraf.service` |
 
 ## Table of specifications
