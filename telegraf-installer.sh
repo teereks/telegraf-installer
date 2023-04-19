@@ -145,7 +145,14 @@ function exitorinstall() {
         programs=$(echo $result | sed 's/" /\n/g' | sed 's/"//g')
         echo "[package-options]: User selected: $programs"
         [[ -z $programs ]] && echo "[install-update]: No programs selected." && return
-        [[ "${programs[*]}" =~ "telegraf" ]] && telegrafwarning
+        [[ "${programs[*]}" =~ "telegraf" ]] && telegrafwarning && apt-get update && apt-get install telegraf=1.26.0-1 && apt-mark hold telegraf
+
+        donotinstallagain="telegraf"
+        for i in $donotinstallagain; do
+            programs=$(echo "$programs" | sed "s/\b$i\b//g")
+        done
+        echo "[package-options]: Trying to install or update the following programs: $programs"
+
         apt-get update && apt-get -y --ignore-missing install $programs || echo "ERROR: Installation failed. Could not install selected programs." >&2
     else
         echo "[package-options]: User selected Cancel."
@@ -298,6 +305,50 @@ function precheck() {
 
 # Install and update programs
 function installprograms() {
+    if (whiptail --title "Install and Update Programs" --yesno "You can select to install programs bundled with this installer without internet-connection. This is suggested only for offline systems and non-compatible distributions.\n\nSelect 'Online' to download and install programs from public sources.\nSelect 'Offline' to install included binaries." 12 78 --no-button "Offline" --yes-button "Online"); then
+        echo "[online-offline-install]: User selected Online, exit status was $?."
+    else
+        echo "[online-offline-install]: User selected Offline, exit status was $?."
+        # Select program you want to install from included binaries
+        declare -a binaryprograms
+        PROGRAMBINARYPATHS=($(ls -d bin/*/))
+
+        # List programs with binaries
+        for progpath in "${PROGRAMBINARYPATHS[@]}"; do
+            dir=$(echo $progpath | awk -F "/" '{print $(NF-1)}')
+            binaryprograms+=("$dir")
+            binaryprograms+=("")
+        done
+        echo "[install-binary]: Found bundled programs with binaries: ${binaryprograms[@]}"
+
+        PROGRAM=$(whiptail --title "Select program" --menu "Select programs for which you want to install using included binaries." 16 78 6 --cancel-button "Exit" "${programs[@]}" 3>&2 2>&1 1>&3)
+        [[ $? -ne 0 ]] && installerexit
+        echo "[install-binary]: User selected program: $PROGRAM"
+
+        # List available binaries for selected program
+        declare -a binariesforprograms
+        BINARYPATHS=($(ls -d bin/$PROGRAM/*/))
+
+        # List available binaries for selected program
+        for configpath in "${BINARYPATHS[@]}"; do
+            dir=$(echo $configpath | awk -F "/" '{print $(NF-1)}')
+            binariesforprograms+=("$dir")
+            binariesforprograms+=("")
+        done
+        echo "[install-binary]: Found bundled binaries for $PROGRAM: ${configs[@]}"
+
+        # Install selected binary
+        INSTALLBINARY=$(whiptail --title "Select binary" --menu "Select the binary-file which you want to install." 18 78 6 --cancel-button "Exit" "${binariesforprograms[@]}" 3>&2 2>&1 1>&3)
+        [[ $? -ne 0 ]] && installerexit
+        echo "[install-binary]: User selected binary-file: $INSTALLBINARY"
+        echo "SIMULATED DPKG -i COMMAND!"
+        installerexit
+
+    fi
+
+    #---------------------------------------------------------------------
+    #OK
+
     if (whiptail --title "Install and Update Programs" --yesno "This part of the script is used to install and update programs on this machine. Installing programs using this script requires working Internet-connection, so make sure to verify this before advancing the installer.\n\nDo you want to continue?" 12 78 --no-button "Exit" --yes-button "Continue"); then
         echo "[verify-inet]: User selected Continue, exit status was $?."
     else
@@ -433,10 +484,6 @@ function manageconfigs() {
         AGENTCONFIGS=($(find $defaultagentpath -maxdepth 1 -not -type d))
         PLUGINCONFIGS=($(find $defaultpluginpath -maxdepth 1 -not -type d))
         #ENVCONFIGS=($(find $defaultenvpath -maxdepth 1 -not -type d))
-
-        # echo "defaultagentpath: $defaultagentpath"
-        # echo "defaultpluginpath: $defaultpluginpath"
-        # echo "defaultenvpath: $defaultenvpath"
 
         for configfile in "${AGENTCONFIGS[@]}"; do
             systemprogramfiles+=("$configfile")
