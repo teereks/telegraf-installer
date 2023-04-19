@@ -1,10 +1,9 @@
 
 # Telegraf-Installer
 
-This script enables user to install `Telegraf` on Debian and Ubuntu using simple and effective text-based user interface (TUI) using `whiptail`.
+This script enables user to install `Telegraf` on Debian and Ubuntu systems with the help of simple and effective text-based user interface (TUI) using `whiptail`.
 
-> **Note:**
-> Parts of this script are borrowed directly from the `Install Telegraf` -section offered by the official Telegraf Documentation so make sure to follow or atleast check the official documentation before running this script, since there is no guarantee that this script will be updated regularly.
+> *Note:* Parts of this script are borrowed directly from the `Install Telegraf` -section offered by the official Telegraf Documentation so make sure to follow or atleast check the official documentation before running this script, since there is no guarantee that this script will be updated regularly.
 >
 > Find the official documentation for `Telegraf v1.26.0` here: [Telegraf 1.26 documentation](https://docs.influxdata.com/telegraf/v1.26/)
 
@@ -14,7 +13,7 @@ This script enables user to install `Telegraf` on Debian and Ubuntu using simple
 - This script was originally developed for `Telegraf v1.26.0`, so if the latest release version is newer this script might not funtion as expected. 
 - This script uses statically coded checksums so i.e. if `InfluxData` rotates public GPG-keys for their repositories, you need to make sure that the updated checksum is available in this script.
 - Script offers dialog to user using `whiptail` so your system needs to have it installed. If `whiptail` is not found on the system, script will make an attempt to install it using `apt-get`.
-- Downloading and updating packages from public sources requires working Internet-connection so this script has limited functionality when run on offline-systems.
+- Downloading and updating packages from public sources requires working Internet-connection so this script has limited functionality when run on offline-systems. You need to bundle your own packages/binaries if you want to install anything on completely offline-system.
 
 ## Usage
 
@@ -58,7 +57,7 @@ This script enables user to install `Telegraf` on Debian and Ubuntu using simple
 
 5. At the beginning of the script user will be offered "Start Menu" which allows for some common tasks to be performed. You might need to run the script multiple times if you want to perform more than one of these tasks in one go. Start menu will give following user the options:
 ![startmenu.png](/media/startmenu.PNG "Start Menu ")
-    - **Install and update programs** allows user to install new programs and update existing ones.
+    - **Install and update programs** allows user to install new programs and update existing ones. Programs can be installed from public sources or included packages can be installed manually even without internet-connection.
     - **Import bundled configurations** allows user to deploy configurations (per program) that are included in the repository itself.
     - **Manage program configurations** enables user to checkout and modify currently deployed configurations (per program) as well as make modifications to the contents.
 
