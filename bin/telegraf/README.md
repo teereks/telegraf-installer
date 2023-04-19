@@ -8,6 +8,6 @@
 
 - This table contains the basic information about included packages. Before installing any of these versions, make sure that you know what version you need.
 
-| Package | Version | Release Notes |
+| Package | Software Version | Release Notes |
 |---|:---:|---|
 | `telegraf_1.26.0-1_amd64.deb` | 1.26.0 | [https://github.com/influxdata/telegraf/releases/tag/v1.26.0](https://github.com/influxdata/telegraf/releases/tag/v1.26.0) |
