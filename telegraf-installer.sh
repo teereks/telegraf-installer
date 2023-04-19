@@ -419,6 +419,7 @@ function importconfigs() {
     defaultagentpath="/etc/telegraf/"
     defaultpluginpath="/etc/telegraf/telegraf.d/"
     defaultenvpath="/etc/default/"
+    defaultserviceunitpath="/lib/systemd/system/"
 
     # Menu for user to handle configuration file one at a time
     while [ 1 ]; do
@@ -430,6 +431,8 @@ function importconfigs() {
             suggestedpath=$defaultagentpath
         elif [[ "$CONFIGFILE" == "telegraf" ]]; then
             suggestedpath=$defaultenvpath
+        elif [[ "$CONFIGFILE" == "telegraf.service" ]]; then
+            suggestedpath=$defaultserviceunitpath
         else
             suggestedpath=$defaultpluginpath
         fi
