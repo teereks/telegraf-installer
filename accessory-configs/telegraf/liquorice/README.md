@@ -83,7 +83,7 @@ This is the description for this configuration. This description briefly explain
 Agent-configuration can be found in: [telegraf.conf](telegraf.conf).
 
 - Agent configuration manages flushing and buffering metrics.
-- Controlling inputs in unnecessary, since here the `inputs.influxdb_listener` is service input, which means that it will be listening for incoming metrics constantly.
+- Controlling the inputs is unnecessary, since here the `inputs.influxdb_listener` is service input, which means that it will be listening for incoming metrics constantly.
 
 ## Inputs
 
