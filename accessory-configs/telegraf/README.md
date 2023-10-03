@@ -1,6 +1,6 @@
 # Accessory-Configurations for Telegraf
 
-Telegraf can be configured to use many different types of plugins to perform the monitoring and data-collection tasks that the user desires. These plugins can be devided into four different types by their designed use. According to the targeted use, a plugin can as one of these types:
+Telegraf can be configured to use many different types of plugins to perform monitoring and data-collection tasks that the user desires. These plugins can be devided into four different types by their designed use. According to the targeted use, a plugin can as one of these types:
 
 1. Input plugin
 2. Output plugin

@@ -50,7 +50,7 @@ This configuration uses environment variables to allow for easier deployment for
     ```
 
 - In that file you need to define values to the required variables. You can see the table of required environment variables here: [Required Environment Variables](#environment-variables).
-- Here is an exmple of how the environment variables file could look like, same file can be seen [here](telegraf):
+- Here is an example of how the environment variables could look like, same file can be seen [here](telegraf):
 
     ```bash
     HTTP_OUTPUT1_ALIAS="machine1"
@@ -67,7 +67,7 @@ This configuration uses environment variables to allow for easier deployment for
 
 # Description
 
-This is the description for this configuration. This description briefly explains what plugins are used and how they the metrics are routed/filtered to output-plugins. 
+This is the description for this configuration. This description briefly explains what plugins are used and how the received metrics are routed/filtered to the output-plugins. 
 
 ## Plugins included
 
@@ -83,7 +83,7 @@ This is the description for this configuration. This description briefly explain
 Agent-configuration can be found in: [telegraf.conf](telegraf.conf).
 
 - Agent configuration manages flushing and buffering metrics.
-- Controlling the inputs is unnecessary, since here the `inputs.influxdb_listener` is service input, which means that it will be listening for incoming metrics constantly.
+- Controlling the inputs is unnecessary, since the `inputs.influxdb_listener` is a service input, which means that it will be listening for incoming metrics constantly.
 
 ## Inputs
 
@@ -92,8 +92,8 @@ Input-plugins can be found in: [inputs.conf](inputs.conf).
 ### inputs.influxdb_listener
 
 - The `inputs.influxdb_listener` plugin listens for incoming requests sent according to the `InfluxDB HTTP API`.
-- Incoming metrics are additionally tagged with their original destination-database, this is used to route metrics to different outputs.
-- Added database-tag is excluded from the written metrics.
+- Incoming metrics are additionally tagged with their original destination-database, this is used to route tthe metrics to different outputs.
+- Temporarily used database-tag is excluded from the written metrics.
 
 ## Outputs
 
@@ -101,7 +101,7 @@ Output-plugins can be found in: [outputs.conf](outputs.conf).
 
 ### outputs.http
 
-- The `outputs.http` uses JSON-transformation to format and then output the metrics to user defined HTTP-endpoint. 
+- The `outputs.http` uses JSON-transformation to format and then to output the metrics to HTTP-endpoint defined by the user. 
 - Metrics are routed to two different HTTP-endpoints and filtering is done by interpreting the `database_tag`.
 
 ### outputs.influxdb
@@ -112,10 +112,10 @@ Output-plugins can be found in: [outputs.conf](outputs.conf).
 
 ## Filtering and routing
 
-This configuration uses some filtering to route metrics to multiple outputs. It is important to understand that the `inputs.influxdb_listener` reads the destination-database from the incoming requests and tags the metric with that information.
+This configuration uses some filtering to route the metrics to multiple outputs. It is important to understand that the `inputs.influxdb_listener` reads the destination-database from the incoming requests and tags the metric with that information.
 
-Incoming metrics are routed to local databases with the same names as the destination-databases. This mechanic can be simplified as simple data-transfer from one system to another, some could call this replication.
+Incoming metrics are then routed to local database with the same name as the destination-database. This mechanism can be simplified as simple data-transfer from one system to another, some could call this replication.
 
-Incoming metrics are also routed to another output: `outputs.http`. There are two of these outputs in the configuration and they are identical apart from the URLs. These outputs sends metrics to two different HTTP-endpoints depending on the `database_tag`.
+Incoming metrics are also routed to another output: `outputs.http`. There are two of these outputs in the configuration and they are identical apart from the defined URLs. These outputs sends metrics to two different HTTP-endpoints depending on the `database_tag`.
 
 

@@ -9,10 +9,10 @@ This script enables user to install `Telegraf` on Debian and Ubuntu systems with
 
 ## Limitations & Requirements
 
-- Script currently only supports native installation. If you want to run Telegraf using i.e. Docker container please refer to the following instuctions: https://hub.docker.com/_/telegraf and follow the steps instructed there.
+- Script currently only supports installation using `apt`, but if you want to run Telegraf using i.e. Docker container please refer to the following instuctions: https://hub.docker.com/_/telegraf and follow the steps instructed there.
 - This script was originally developed for `Telegraf v1.26.0`, so if the latest release version is newer this script might not funtion as expected. 
 - This script uses statically coded checksums so i.e. if `InfluxData` rotates public GPG-keys for their repositories, you need to make sure that the updated checksum is available in this script.
-- Script offers dialog to user using `whiptail` so your system needs to have it installed. If `whiptail` is not found on the system, script will make an attempt to install it using `apt-get`.
+- Script offers dialog to user using `whiptail` so your system needs to have it installed. If `whiptail` is not found on the system, this script will make an attempt to install it using `apt-get`.
 - Downloading and updating packages from public sources requires working Internet-connection so this script has limited functionality when run on offline-systems. You need to bundle your own packages/binaries if you want to install anything on completely offline-system.
 
 ## Usage
@@ -24,13 +24,13 @@ This script enables user to install `Telegraf` on Debian and Ubuntu systems with
     git clone https://github.com/teereks/telegraf-installer.git
     ```
 
-    **Using `wget`**: *- notice that this only download the script, not included configs, binaries of documentation*
+    **Using `wget`**: *this downloads only the script, not the included configs, binaries or documentation*
 
     ```bash
     wget https://raw.githubusercontent.com/teereks/telegraf-installer/main/telegraf-installer.sh
     ```
 
-    **Using `curl`**: *- notice that this only download the script, not included configs, binaries of documentation*
+    **Using `curl`**: *this downloads only the script, not the included configs, binaries or documentation*
     ```bash
     curl -OJ https://raw.githubusercontent.com/teereks/telegraf-installer/main/telegraf-installer.sh
     ``` 
@@ -55,11 +55,11 @@ This script enables user to install `Telegraf` on Debian and Ubuntu systems with
 
     *Note:* The script requires you to run it as `root` -user (EUID must be 0) to make any changes on the system.
 
-5. At the beginning of the script user will be offered "Start Menu" which allows for some common tasks to be performed. You might need to run the script multiple times if you want to perform more than one of these tasks in one go. Start menu will give following user the options:
+5. At the beginning of the script user will be offered "Start Menu" which allows for some common tasks to be performed. You might need to run the script multiple times if you want to perform more than one of these tasks concurrently. Start menu will give following user the options:
 ![startmenu.png](/media/startmenu.PNG "Start Menu ")
-    - **Install and update programs** allows user to install new programs and update existing ones. Programs can be installed from public sources or included packages can be installed manually even without internet-connection.
-    - **Import bundled configurations** allows user to deploy configurations (per program) that are included in the repository itself.
-    - **Manage program configurations** enables user to checkout and modify currently deployed configurations (per program) as well as make modifications to the contents.
+    - **Install and update programs**: allows user to install new programs and update existing ones. Programs can be installed from public sources or included packages can be installed manually even without internet-connection.
+    - **Import bundled configurations**: allows user to deploy configurations that are included in the downloaded repository itself.
+    - **Manage program configurations**: enables user to check and modify currently deployed configurations.
 
 6. (Optional) - If you made changes to the `Systemd Units` remember to reload systemd manager configuration by running:
 
@@ -67,7 +67,7 @@ This script enables user to install `Telegraf` on Debian and Ubuntu systems with
     systemctl daemon-reload
     ```
 
-7. Finally you likely need to estart your service(s) that you have modified by running:
+7. Finally you likely need to restart your service(s) that you have modified by running:
 
     ```bash
     systemctl restart <your-service>

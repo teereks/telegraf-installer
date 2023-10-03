@@ -17,11 +17,11 @@ It is also helpful to include additional information in the instructions like:
 
 ## Using systemd
 
-Telegraf configurations in this repository might include service-unit files for `Telegraf` which are meant to replace the automatically generated default file. The default file does not allow service to be restarted for forever, so these slightly modified service-unit files can be used to replace the original.
+Configurations in this repository might include service-unit files for programs which are meant to replace the automatically generated default file. The default file might not allow service to be restarted indefinitely, so these slightly modified service-unit files can be used to replace the original, if needed. 
 
-Read the documentation of the configuration which and check the file before importing it to system to verify that it is suitable for your use.
+Read the documentation of the configuration and check the service-unit -file before importing it to system to verify that it is suitable for your use.
 
-> *Note:* The service unit files might not be compatible for your system depending on the `systemd` version that is used. There are some relevant changes for `systemd-230` and newer versions compared to pre `systemd-230`.
+> *Note:* The service-unit files might not be compatible for your system depending on the `systemd` version that is used. There are some relevant changes for `systemd-230` and newer versions compared to pre `systemd-230`. Check your logs if you encounter any problems related to systemd.
 
 ### Available programs and applications
 
