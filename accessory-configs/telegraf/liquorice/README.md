@@ -2,6 +2,10 @@
 
 This configuration can be used to setup an enpoint using `influxdb_listener`, which listens for requests sent according to the [InfluxDB HTTP API](https://docs.influxdata.com/influxdb/v1.8/guides/write_data/). The incoming requests can be then routed to two different outputs: `http` and `influxdb`.
 
+> [!IMPORTANT]
+> Note that this configuration is compatible only with `influxdb v1.x`. 
+
+
 # Requirements
 
 Using this configuration on your system requires you to fill in some information specific to your use. 
